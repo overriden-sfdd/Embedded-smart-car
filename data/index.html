@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>RoundSlider - A sample demo</title>
+    <script src="jquery-1.11.3.min.js"></script>
+    <link href="roundslider.min.css" rel="stylesheet" />
+    <script src="roundslider.min.js"></script>
+
+</head>
+
+<body style="padding: 10px 0 0 20px; font-family: monospace;">
+
+    <div class="types">
+        <h3>Car rotation</h3>
+        <div class="main_container">
+            <div class="control">
+                <div id="rd_slider_rotation"></div>
+                <br /><br />
+                rotation:
+                <br />
+                <input id="rotation_box" value="0" />
+            </div>
+
+            <h3>Drive commands</h3>
+            <br />
+            <button onclick="FRW5()">Forward 5cm</button>
+            <br />
+            <button onclick="FRW1()">Forward 1cm</button>
+            <br /><br /><br />
+            <button onclick="BACK1()">Back 1cm</button>
+            <br />
+            <button onclick="BACK5()">Back 5cm</button>
+            <br /><br /><br />
+            commands(cm):
+            <br />
+            <input id="commands_box" value="0" />
+
+            <br /><br /><br /><br />
+
+            <h3>Car velocity</h3>
+            <div class="velocity_container">
+                <div class="control">
+                    <div id="rd_slider_velocity"></div>
+                    <br /> <br />
+                    velocity:
+                    <br />
+                    <input id="velocity_box" value="0" />
+                </div>
+            </div>
+
+            <script type="text/javascript">
+
+                var vel = 0; // velocity
+                var rot = 0; // rotation
+                var dst = 0; // distance
+                var mode = 0; // 0 -> velocity, 1 -> rotation, 2 -> distance
+
+                const commands_box = document.getElementById("commands_box");
+                const rotation_box = document.getElementById("rotation_box");
+                const velocity_box = document.getElementById("velocity_box");
+
+                rotation_box.value = 0;
+                velocity_box.value = 0;
+                commands_box.value = 0;
+
+                $(document).ready(function () {
+                    $("#rd_slider_rotation").roundSlider({
+                        radius: 85,
+                        min: -180,
+                        max: 180,
+                        circleShape: "pie",
+                        sliderType: "min-range",
+                        value: 0,
+                        startAngle: 315,
+
+                        change: function (args) {
+                            $("#range").html(args.value);
+                            rot = args.value; // direction variable set
+                            send_srw_rotation_val(rot);
+                        },
+                    });
+                });
+
+                $(document).ready(function () {
+                    $("#rd_slider_velocity").roundSlider({
+                        radius: 85,
+                        min: -255,
+                        max: 255,
+                        circleShape: "pie",
+                        sliderType: "min-range",
+                        value: 0,
+                        startAngle: 315,
+
+                        change: function (args) {
+                            $("#range").html(args.value);
+                            vel = args.value; // velocity variable set
+                            send_srw_velocity_val(vel);
+                        },
+                    });
+                });
+
+                function send_srw_rotation_val(val) {
+                    // send rotation value
+                    rotation_box.value = val;
+                    // rotation mode
+                    mode = 1;
+                    httpGetAsync(tryme);
+                }
+
+                function send_srw_velocity_val(val) {
+                    // send velocity value
+                    velocity_box.value = val;
+                    // velocity mode
+                    mode = 0;
+                    httpGetAsync(tryme);
+                }
+
+                document.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        var command = commands_box.value.toLowerCase();
+                        dst = parseInt(command.match(/\d+/g)[0], 10);
+                        if (dst != null) {
+                            if (command.includes("back")) { dst = -dst; }
+                            mode = 2;
+                            httpGetAsync(tryme);
+                        }
+                    }
+                });
+
+                function FRW5() {
+                    commands_box.value = "Forw 5cm";
+                    mode = 2;
+                    dst = 5;
+                    httpGetAsync(tryme);
+                }
+
+                function BACK5() {
+                    commands_box.value = "Back 5cm";
+                    mode = 2;
+                    dst = -5;
+                    httpGetAsync(tryme);
+                }
+
+                function FRW1() {
+                    commands_box.value = "Forw 1cm";
+                    mode = 2;
+                    dst = 1;
+                    httpGetAsync(tryme);
+                }
+
+                function BACK1() {
+                    commands_box.value = "Back 1cm";
+                    mode = 2;
+                    dst = -1;
+                    httpGetAsync(tryme);
+                }
+
+                function httpGetAsync(callback) {
+                    var xmlHttp = new XMLHttpRequest();
+                    xmlHttp.onreadystatechange = function () {
+                        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                            callback(xmlHttp.responseText);
+                    };
+                    if (mode == 0) {
+                        xmlHttp.open("GET", "/?vel=" + vel, true);
+                    }
+                    if (mode == 1) {
+                        xmlHttp.open("GET", "/?rot=" + rot, true);
+                    }
+                    if (mode == 2) {
+                        xmlHttp.open("GET", "/?dst=" + dst, true);
+                    }
+                    xmlHttp.send(null);
+                }
+
+                function tryme(param1) { }
+
+            </script>
+
+            <style>
+                h1 span {
+                    font-size: 0.6em;
+                }
+
+                .types {
+                    display: inline-block;
+                    padding: 10px 30px;
+                    border: 1px dotted;
+                    margin-right: 20px;
+                    overflow: hidden;
+                }
+
+                .main_container {
+                    height: 350px;
+                    width: 550px;
+                }
+
+                .main_container>div {
+                    float: left;
+                }
+
+                .control {
+                    margin-right: 70px;
+                }
+
+                .velocity_container {
+                    height: 250px;
+                    width: 200px;
+                }
+
+                .velocity_container>div {
+                    float: left;
+                }
+            </style>
+</body>
+
+</html>
