@@ -127,7 +127,7 @@ void setup()
 
     // Sort of calibration.
     init_coord = analogRead(joy_x);
-    x_coord_pos_percent = init_coord, y_coord_percent = init_coord;
+    x_coord_pos_percent = init_coord;
     joystick_offset = mid_coord - init_coord;
 
     // Baud rate 9600bps.
